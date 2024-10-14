@@ -14,13 +14,26 @@ class _InputPageState extends State<InputPage> {
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
 
-  List<bool> _isSelected = [true, false]; // Initially male is selected
+  String _selectedWeightUnit = 'kg'; // Initially kg is selected
+  String _selectedHeightUnit = 'cm'; // Initially cm is selected
 
   void calculateBMI() {
     double? weight = double.tryParse(_weightController.text);
     double? height = double.tryParse(_heightController.text);
 
     if (weight != null && height != null && height > 0) {
+      // Convert weight to kg if in lbs
+      if (_selectedWeightUnit == 'lbs') {
+        weight = weight / 2.20462; // Convert lbs to kg
+      }
+
+      // Convert height to cm if in inches or feet
+      if (_selectedHeightUnit == 'inch') {
+        height = height * 2.54; // Convert inches to cm
+      } else if (_selectedHeightUnit == 'ft') {
+        height = height * 30.48; // Convert feet to cm
+      }
+
       double bmi = weight / ((height / 100) * (height / 100));
 
       Navigator.push(
@@ -40,7 +53,7 @@ class _InputPageState extends State<InputPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Hi ${widget.userName}"), // Correct interpolation
+        title: Text("Hi ${widget.userName}"),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: Padding(
@@ -55,39 +68,26 @@ class _InputPageState extends State<InputPage> {
                 // Male Image
                 ClipOval(
                   child: Image.asset(
-                    'assets/male.png', // Replace with your male image asset
-                    width: 150,
-                    height: 150,
-                    //color: _isSelected[0]
-                    //   ? null
-                    //  : Colors.grey, // Grey out if not selected
+                    'assets/male.png',
+                    width: 100,
+                    height: 100,
                   ),
                 ),
                 // Female Image
                 ClipOval(
                   child: Image.asset(
-                    'assets/female.png', // Replace with your female image asset
-                    width: 150,
-                    height: 150,
-                    //color: _isSelected[1]
-                    //    ? null
-                    //    : Colors.grey, // Grey out if not selected
+                    'assets/female.png',
+                    width: 100,
+                    height: 100,
                   ),
                 ),
               ],
             ),
-            //const SizedBox(height: 20),
             // Gender toggle buttons
             SizedBox(
               child: ToggleButtons(
-                isSelected: _isSelected,
-                onPressed: (int newIndex) {
-                  setState(() {
-                    for (int index = 0; index < _isSelected.length; index++) {
-                      _isSelected[index] = index == newIndex;
-                    }
-                  });
-                },
+                isSelected: [true, false], // Set male as default
+                onPressed: (int newIndex) {},
                 children: [
                   SizedBox(
                     width: 150,
@@ -109,41 +109,95 @@ class _InputPageState extends State<InputPage> {
                   ),
                 ],
                 fillColor: Colors.lightBlueAccent,
-                selectedColor: Colors.lightBlueAccent,
+                selectedColor: Colors.white,
                 borderRadius: BorderRadius.circular(30.0),
               ),
             ),
             //const SizedBox(height: 20),
-            // Age input
-            TextField(
-              controller: _ageController,
-              decoration: const InputDecoration(
-                labelText: 'Enter your age',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
+            // Age input field
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter your age',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
             ),
-            //const SizedBox(height: 20),
-            // Weight input
-            TextField(
-              controller: _weightController,
-              decoration: const InputDecoration(
-                labelText: 'Enter your weight (kg)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
+            //const SizedBox(height: 20), // Added spacing between fields
+            // Weight input and unit dropdown
+            Row(
+              children: [
+                // Weight input field
+                Expanded(
+                  child: TextField(
+                    controller: _weightController,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter your weight',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Weight unit dropdown
+                DropdownButton<String>(
+                  value: _selectedWeightUnit,
+                  items: <String>['kg', 'lbs']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedWeightUnit = newValue!;
+                    });
+                  },
+                ),
+              ],
             ),
-            // const SizedBox(height: 20),
-            // Height input
-            TextField(
-              controller: _heightController,
-              decoration: const InputDecoration(
-                labelText: 'Enter your height (cm)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
+            //const SizedBox(height: 20), // Added spacing between fields
+            // Height input and unit dropdown
+            Row(
+              children: [
+                // Height input field
+                Expanded(
+                  child: TextField(
+                    controller: _heightController,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter your height',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Height unit dropdown
+                DropdownButton<String>(
+                  value: _selectedHeightUnit,
+                  items: <String>['cm', 'inch', 'ft']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedHeightUnit = newValue!;
+                    });
+                  },
+                ),
+              ],
             ),
-            //const SizedBox(height: 20),
+            //const SizedBox(height: 20), // Added spacing between fields
             // Calculate BMI button
             ElevatedButton(
               onPressed: calculateBMI,
